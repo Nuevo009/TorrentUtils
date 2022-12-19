@@ -819,7 +819,7 @@ class Torrent():
             raise RuntimeError('Loop not correctly continued.')
 
 
-    def load(self, spath, keep_name=False, show_progress=False):
+    def load(self, spath, keep_name=False, show_progress=False, check_empty=False):
         '''Load new file list and piece hash from the Source PATH (spath).
 
         The following torrent keys will be overwritten on success:
@@ -839,7 +839,15 @@ class Torrent():
 
         fpaths = [spath] if spath.is_file() else sorted(filter(methodcaller('is_file'), spath.rglob('*')))
         fpath_list = [fpath.relative_to(spath) for fpath in fpaths]
-        fsize_list = [fpath.stat().st_size for fpath in fpaths]
+        fsize_list = []
+        if check_empty:
+            for fpath in fpaths:
+                if (fsize := fpath.stat().st_size):
+                    fsize_list.append(fsize)
+                else:
+                    raise ValueError(f"File '{fpath}' is empty.")
+        else:
+            fsize_list = [fpath.stat().st_size for fpath in fpaths]
         if sum(fsize_list):
             if show_progress: # TODO: stdout is dirty in core class method and should be moved out in the future
                 sha1 = b''
@@ -1124,8 +1132,8 @@ class Main():
         if args.show_progress and 'tqdm' not in globals().keys():
             print("I: Progress bar won't be shown as not installed, consider `python3 -m pip install tqdm`.")
             args.show_progress=False
-        cfg = namedtuple('CFG', '     show_prompt       show_progress       with_time_suffix')(
-                                 args.show_prompt, args.show_progress, args.with_time_suffix)
+        cfg = namedtuple('CFG', '     show_prompt       check_empty       show_progress       with_time_suffix')(
+                                 args.show_prompt, args.check_empty, args.show_progress, args.with_time_suffix)
         return cfg
 
 
@@ -1468,7 +1476,7 @@ class Main():
 
     def _load(self):
         try:
-            self.torrent.load(self.spath, False, self.cfg.show_progress)
+            self.torrent.load(self.spath, False, self.cfg.show_progress, self.cfg.check_empty)
         except EmptySourceSize:
             self.__exit(f"The source path '{self.spath.absolute()}' has a total size of 0.")
 
@@ -1606,6 +1614,8 @@ if __name__ == '__main__':
                         help='set the special source message (will change hash)', metavar='text')
     parser.add_argument('--preset', dest='preset', type=Path,
                         help='load a preset file for metadata in creating torrent', metavar='path')
+    parser.add_argument('--check-empty', dest='check_empty', action='store_true',
+                        help='check empty file when creating torrent')
     parser.add_argument('--no-progress', dest='show_progress', action='store_false',
                         help='disable progress bar in creating torrent')
     parser.add_argument('--time-suffix', dest='with_time_suffix', action='store_true',
