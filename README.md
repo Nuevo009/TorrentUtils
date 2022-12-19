@@ -21,10 +21,10 @@ Nothing needed if you just use the released executables.
 
 ```txt
 $ python3 tu.py -h
-usage: tu [-h] [-m {create,print,verify,modify}] [-t url [url ...]] [-s number] [-c text] [-p {0,1}]
-          [--by text] [--time number] [--source text] [--encoding text] [--json path]
-          [--time-suffix] [--progress] [-y]
-          [path [path ...]]
+usage: tu [-h] [-m {create,print,verify,modify}] [-t url [url ...]] [-c text] [-s number] [-p {0,1}]
+          [--by text] [--time number] [--encoding text] [--source text] [--preset path]
+          [--check-empty] [--no-progress] [--time-suffix] [-y] [--version]
+          [path ...]
 
 positional arguments:
   path                                     1 or 2 paths depending on mode
@@ -40,11 +40,38 @@ optional arguments:
   --time number                            set the time in second since 19700101 (default: now)
   --encoding text                          set the text encoding (default&recommended: UTF-8)
   --source text                            set the special source message (will change hash)
-  --json path                              load a json for metadata preset in creating torrent
+  --preset path                            load a preset file for metadata in creating torrent
+  --check-empty                            check empty file when creating torrent
   --no-progress                            disable progress bar in creating torrent
   --time-suffix                            append current time to torrent filename
   -y, --yes                                just say yes - don't ask any question
+  --version                                show program's version number and exit
 ```
+
+---
+
+## Preset Configuration Example
+
+```json
+{
+    "private": 0,
+    "piece_size": 16384,
+    "tracker_list": [
+        "http://208.67.16.113:8000/annonuce",
+        "udp://208.67.16.113:8000/annonuce",
+        "udp://tracker.openbittorrent.com:80/announce",
+        "http://t.acg.rip:6699/announce",
+        "http://nyaa.tracker.wf:7777/announce",
+        "https://tr.bangumi.moe:9696/announce",
+        "http://tr.bangumi.moe:6969/announce",
+        "udp://tr.bangumi.moe:6969/announce",
+        "http://open.acgnxtracker.com/announce",
+        "https://open.acgnxtracker.com/announce"
+    ]
+}
+```
+
+When a torrent file is passed, the metadata of the torrent will be used for the metadata preset.
 
 ---
 
